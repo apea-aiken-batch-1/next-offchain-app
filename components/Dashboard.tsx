@@ -2,7 +2,15 @@ import { Accordion, AccordionItem } from "@nextui-org/accordion";
 import { Button } from "@nextui-org/button";
 
 import { Address, Data, fromText, LucidEvolution, MintingPolicy, SpendingValidator, TxSignBuilder, Validator } from "@lucid-evolution/lucid";
-import { applyDoubleCborEncoding, mintingPolicyToId, scriptHashToCredential, validatorToAddress, validatorToScriptHash } from "@lucid-evolution/utils";
+import {
+  applyDoubleCborEncoding,
+  applyParamsToScript,
+  mintingPolicyToId,
+  paymentCredentialOf,
+  scriptHashToCredential,
+  validatorToAddress,
+  validatorToScriptHash,
+} from "@lucid-evolution/utils";
 
 const Script = {
   MintSpend: applyDoubleCborEncoding(
@@ -93,10 +101,11 @@ export default function Dashboard(props: {
       deposit: async () => {
         try {
           const { network } = lucid.config();
+          const pkh = paymentCredentialOf(address).hash;
 
           //#region Contract Address
           const spendingValidator: SpendingValidator = { type: "PlutusV3", script: Script.MintSpend };
-          const stakingValidator: Validator = { type: "PlutusV3", script: Script.WithdrawPublish };
+          const stakingValidator: Validator = { type: "PlutusV3", script: applyParamsToScript(Script.WithdrawPublish, [pkh]) };
 
           const stakeScriptHash = validatorToScriptHash(stakingValidator);
           const stakeCredential = scriptHashToCredential(stakeScriptHash);
@@ -115,10 +124,11 @@ export default function Dashboard(props: {
       withdraw: async () => {
         try {
           const { network } = lucid.config();
+          const pkh = paymentCredentialOf(address).hash;
 
           //#region Contract Address
           const spendingValidator: SpendingValidator = { type: "PlutusV3", script: Script.MintSpend };
-          const stakingValidator: Validator = { type: "PlutusV3", script: Script.WithdrawPublish };
+          const stakingValidator: Validator = { type: "PlutusV3", script: applyParamsToScript(Script.WithdrawPublish, [pkh]) };
 
           const stakeScriptHash = validatorToScriptHash(stakingValidator);
           const stakeCredential = scriptHashToCredential(stakeScriptHash);
